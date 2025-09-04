@@ -1,0 +1,153 @@
+# MULTI LAYER PERCEPTRON FOR A CLASSIFICATION PROBLEM. EXPERIMENT IWTH DIFFERENT ACTIVATION FUNCTIONS AND LAYER CONFIGURATIONS
+#For Iris Dataset
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+from sklearn.metrics import classification_report, confusion_matrix
+
+# Load the Iris dataset
+iris = load_iris()
+X = iris.data  # shape: (150, 4)
+y = iris.target  # shape: (150,)
+
+# Normalize the dataset
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# One hot encode the labels
+y = to_categorical(y, num_classes=3)
+
+# Split into train and test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Build MLP model function
+def build_mlp(activation='relu', layer_config=[64, 32]):
+    model = Sequential()
+    model.add(Dense(layer_config[0], input_shape=(4,), activation=activation))
+    for units in layer_config[1:]:
+        model.add(Dense(units, activation=activation))
+    model.add(Dense(3, activation='softmax'))  # 3 classes for Iris
+    model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+# Experiment with different configurations
+activations = ['relu', 'tanh', 'sigmoid']
+layer_configs = [[64, 32], [128, 64, 32], [256, 128, 64, 32]]
+
+results = {}
+
+for activation in activations:
+    for config in layer_configs:
+        model = build_mlp(activation=activation, layer_config=config)
+        history = model.fit(X_train, y_train, epochs=50, batch_size=8, validation_split=0.2, verbose=0)
+        _, accuracy = model.evaluate(X_test, y_test, verbose=0)
+        results[(activation, tuple(config))] = accuracy
+        print(f'Activation: {activation}, Layer Config: {config}, Accuracy: {accuracy:.4f}')
+
+# Visualize results
+plt.figure(figsize=(12, 6))
+for key, value in results.items():
+    plt.bar(str(key), value)
+plt.xticks(rotation=90)
+plt.xlabel('Activation and layer configuration')
+plt.ylabel('Accuracy')
+plt.title('Accuracy for Different Activation Functions and Layer Configurations (Iris Dataset)')
+plt.tight_layout()
+plt.show()
+
+# Classification report for the best model
+best_model_key = max(results, key=results.get)
+best_activation, best_config = best_model_key
+best_model = build_mlp(activation=best_activation, layer_config=list(best_config))
+best_model.fit(X_train, y_train, epochs=50, batch_size=8, validation_split=0.2, verbose=0)
+
+y_pred = np.argmax(best_model.predict(X_test), axis=-1)
+y_test_labels = np.argmax(y_test, axis=-1)
+
+print("\nClassification Report:\n")
+print(classification_report(y_test_labels, y_pred, target_names=iris.target_names))
+
+# Confusion matrix
+cm = confusion_matrix(y_test_labels, y_pred)
+print("Confusion Matrix:\n", cm)
+
+#For MNIST Dataset
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten
+from tensorflow.keras.optimizers import Adam
+from sklearn.metrics import classification_report, confusion_matrix
+
+#Load the MNIST Dataset
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+
+#Normalize the dataset (INPUT)
+X_train = X_train.astype('float32') / 255.0 #(255 - image scale ,gray scale)
+X_test = X_test.astype('float32') / 255.0
+
+#One hot encode the labels (OUTPUT)
+y_train = to_categorical(y_train, num_classes=10) # Converting Class labels into one hot encode format
+y_test = to_categorical(y_test, num_classes=10)
+
+#Build a Multi-layer Perceptron model
+def build_mlp(activation = 'relu', layer_config=[128,64]): #2 layer
+    model = Sequential() # Method or function to create a squential network
+    model.add(Flatten(input_shape=(28,28)))
+    for units in layer_config:
+        model.add(Dense(units, activation=activation))
+    model.add(Dense(10, activation='softmax')) # softmax- individual to probabilities
+    model.compile(optimizer=Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+#Experiment with different configurations
+activation = ['relu','tanh','sigmoid']
+layer_configs = [[128,64],[256,128,64],[512,256,128,64]]
+
+results ={}
+
+for activation in activation:
+    for config in layer_configs:
+        model = build_mlp(activation=activation, layer_config = config)
+        history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2, verbose=0)
+        _, accuracy = model.evaluate(X_test, y_test, verbose=0)
+        results[(activation, tuple(config))] = accuracy
+        print(f'Activation: {activation}, Layer Config: {config}, Accuracy: {accuracy:.4f}')
+
+#Visualize the results
+plt.figure(figsize=(12,8))
+for key,value in results.items():
+    plt.bar(str(key), value)
+plt.xticks(rotation=90)
+plt.xlabel('Activation and layer configuration')
+plt.ylabel('Accuracy')
+plt.title('Accuracy for Differnent activation function and layer configurations')
+plt.show()
+
+#Display classification report for the best model
+best_model_key = max(results, key=results.get)
+best_activation, best_config = best_model_key
+best_model = build_mlp(activation=best_activation, layer_config=best_config)
+best_model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2, verbose=0)
+y_pred = np.argmax(best_model.predict(X_test), axis=-1)
+y_test_labels = np.argmax(y_test, axis=-1)
+
+#Display some test image with their predicated labels
+plt.figure(figsize=(15,15))
+for i in range(25):
+    plt.subplot(5,5,i+1)
+    plt.imshow(X_test[i], cmap='gray')
+    plt.title(f'Predicted: {y_pred[i]}, True: {y_test_labels[i]}')
+    plt.axis('off')
+plt.show()
+
+
+    

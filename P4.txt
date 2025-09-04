@@ -1,0 +1,38 @@
+import torch, torchvision
+import matplotlib.pyplot as plt
+from torchvision import transforms
+from PIL import Image
+
+fcn = torchvision.models.segmentation.fcn_resnet50(pretrained=True).eval()
+frcnn = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+frcnn.eval()
+transform = transforms.ToTensor()
+
+def process(img):
+  t= transform(img)
+
+  with torch.no_grad():
+    seg = fcn(t.unsqueeze(0))['out'].argmax(1).squeeze().cpu().numpy()
+    det= frcnn([t])[0]
+
+  
+  plt.imshow(img);
+  plt.title("Original");
+  plt.axis('off');
+  plt.show()
+
+  plt.imshow(seg);
+  plt.title("Segmentation");
+  plt.axis("off"); 
+  plt.show()
+
+  plt.imshow(img)
+  for box in det['boxes'].cpu().numpy():
+    x1,y1,x2,y2 = box
+    plt.gca().add_patch(plt.Rectangle((x1,y1),x2-x1, y2-y1, fill=False, color= 'red', lw=2))
+  plt.title("Object Detection");
+  plt.axis('off');
+  plt.show()
+  
+for img in ["road.jpg","car.jpeg","room.jpg"]:
+  process(Image.open(img))

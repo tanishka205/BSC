@@ -1,0 +1,98 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+def sigmoid(x):
+  s= 1/(1+np.exp(-x))
+  ds=s*(1-s)
+  return s,ds
+activations={"sigmoid":sigmoid}
+x= np.arange(-10,10,0.01)
+sigmoid(x)
+for name,f in activations.items():
+    y,dy = f(x)
+    plt.plot(x,y,label=name)
+    plt.plot(x,dy,label=f"derivate")
+    plt.axhline(0,color='black')
+    plt.axvline(0,color='black')
+    plt.legend()
+    plt.title(name)
+    plt.show()
+
+def tanh(x):
+  t=(np.exp(x)-np.exp(-x))/(np.exp(x)+np.exp(-x))
+  dt=1-t**2
+  return t,dt
+
+activations= {'tanh':tanh}
+x=np.arange(-10,10,0.01)
+tanh(x)
+
+for name, f in activations.items():
+  y,dy = f(x)
+  plt.plot(x,y,label=name)
+  plt.plot(x,dy,label=f"derivate")
+  plt.axhline(0,color='black')
+  plt.axvline(0,color='black')
+  plt.legend()
+  plt.title(name)
+  plt.show()
+
+
+
+def relu(x):
+  r= np.maximum(x,0)
+  dr= np.where(x <=0,0,1)
+  return r,dr
+
+activations= {"ReLU": relu}
+x= np.arange(-10,10,0.01)
+relu(x)
+
+for name, f in activations.items():
+  y,dy =f(x)
+  plt.plot(x,y,label=name)
+  plt.plot(x,dy,label=f"derivate")
+  plt.axhline(0,color="black")
+  plt.axvline(0,color="green")
+  plt.legend()
+  plt.title(name)
+  plt.show()
+
+
+def Leaky_ReLU(x,alpha=0.01):
+  l= np.maximum(alpha*x, x)
+  dl= np.where(x <=0, alpha, 1)
+  return l,dl
+
+activations ={"Leaky_Relu": Leaky_ReLU}
+x= np.arange(-10,10,0.01)
+Leaky_ReLU(x)
+
+for name, f in activations.items():
+  y,dy = f(x)
+  plt.plot(x,y, label=name)
+  plt.plot(x,dy, label='derivate') # Corrected
+  plt.axhline(0,color='black')
+  plt.axvline(0,color='black')
+  plt.legend()
+  plt.title(name)
+  plt.show()
+
+def softmax(x):
+  s = np.exp(x)/(np.exp(x)+np.exp(0))          # softmax prob for class 1 (2-class case)
+  ds = s*(1-s)                                 # derivative
+  return s,ds
+
+activations = {'softmax': softmax}
+x= np.arange(-10,10,0.01)
+
+softmax(x)
+for name, f in activations.items():
+  y,dy = f(x)
+  plt.plot(x,y,label=name)
+  plt.plot(x,y,label= f'derivate')
+  plt.axhline(0,color='black')
+  plt.axvline(0,color='black')
+  plt.legend()
+  plt.title(name)
+  plt.show()
